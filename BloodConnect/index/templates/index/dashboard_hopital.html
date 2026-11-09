@@ -1,0 +1,303 @@
+{% extends 'base.html' %}
+
+{% block title %}Terminal Médical Hospitalier | VitalStream{% endblock %}
+
+{% block extra_css %}
+<style>
+    .disabled-terminal-btn {
+        opacity: 0.45;
+        cursor: not-allowed;
+        pointer-events: none;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Hospital Terminal Header -->
+    <div class="hud-card p-4 mb-4 hud-card-accent-unesco">
+        <div class="d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-3">
+            <div class="d-flex align-items-center gap-3">
+                <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 58px; height: 58px; background: rgba(0, 114, 206, 0.15); border: 2px solid rgba(0, 114, 206, 0.4);">
+                    <i class="bi bi-hospital text-info fs-3"></i>
+                </div>
+                <div>
+                    <div class="d-flex align-items-center gap-2 flex-wrap">
+                        <h3 class="font-display fw-bold text-white mb-0">{{ hopital.nom }}</h3>
+                        {% if hopital.valide %}
+                            <span class="badge bg-success bg-opacity-25 text-success border border-success border-opacity-50 font-mono small">
+                                <i class="bi bi-patch-check-fill me-1"></i> ACCRÉDITÉ UNESCO
+                            </span>
+                        {% else %}
+                            <span class="badge bg-warning bg-opacity-25 text-warning border border-warning border-opacity-50 font-mono small">
+                                <i class="bi bi-hourglass-split me-1"></i> EN ATTENTE DE VALIDATION ADMIN
+                            </span>
+                        {% endif %}
+                    </div>
+                    <div class="font-mono text-muted small mt-1" style="font-size: 0.75rem;">
+                        CENTRE: {{ hopital.ville|upper }} · CERTIFICAT AGRÉMENT: <span class="text-white">{{ hopital.agrement }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Terminal Actions -->
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+                <a href="{% url 'create_campagne' %}" class="btn-vital-outline btn-sm py-2 px-3 {% if not hopital.valide %}disabled-terminal-btn{% endif %}">
+                    <i class="bi bi-megaphone text-info"></i> Planifier une Campagne
+                </a>
+                <a href="{% url 'create_demande' %}" class="btn-vital-primary btn-sm py-2 px-3 {% if not hopital.valide %}disabled-terminal-btn{% endif %}">
+                    <i class="bi bi-plus-circle"></i> Émettre Réquisition Urgente
+                </a>
+            </div>
+        </div>
+
+        {% if not hopital.valide %}
+        <div class="mt-3 p-3 rounded-3" style="background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3);">
+            <div class="d-flex align-items-center gap-2 text-warning small">
+                <i class="bi bi-shield-exclamation fs-5"></i>
+                <span><strong>Terminal restreint :</strong> Votre certificat d'agrément est en cours de vérification par les administrateurs UNESCO. La publication d'appels d'urgence et de campagnes sera débloquée dès confirmation.</span>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Activity Telemetry & Metrics -->
+    <div class="row g-4 mb-5">
+        <div class="col-lg-8">
+            <div class="hud-card p-4 h-100">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <span class="font-mono text-xs text-muted">DISPATCH TELEMETRY</span>
+                        <h5 class="font-display fw-bold text-white mb-0">Flux des Réponses Volontaires</h5>
+                    </div>
+                    <span class="badge bg-secondary bg-opacity-25 text-muted font-mono small">6 DERNIERS MOIS</span>
+                </div>
+                <div style="height: 220px;">
+                    <canvas id="activityChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="hud-card p-4 h-100 d-flex flex-column justify-content-between">
+                <div>
+                    <span class="font-mono text-xs text-muted">MÉTRIQUES OPÉRATIONNELLES</span>
+                    <h5 class="font-display fw-bold text-white mb-3">Statut du Centre</h5>
+                </div>
+
+                <div class="p-3 rounded-3 mb-3" style="background: rgba(239, 35, 60, 0.08); border: 1px solid rgba(239, 35, 60, 0.25);">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="font-mono text-xs text-danger">RÉQUISITIONS ACTIVES</div>
+                            <div class="display-6 fw-bold text-white font-mono">{{ demandes_actives.count }}</div>
+                        </div>
+                        <i class="bi bi-droplet-half text-danger fs-1"></i>
+                    </div>
+                </div>
+
+                <div class="p-3 rounded-3" style="background: rgba(0, 114, 206, 0.08); border: 1px solid rgba(0, 114, 206, 0.25);">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="font-mono text-xs text-info">COLLECTES ORGANISÉES</div>
+                            <div class="display-6 fw-bold text-white font-mono">{{ campagnes.count }}</div>
+                        </div>
+                        <i class="bi bi-calendar-heart text-info fs-1"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Active Urgent Requisitions Grid -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="font-display fw-bold text-white mb-0">Réquisitions d'Urgence en Cours</h3>
+            <p class="text-secondary small mb-0">Demandes actives diffusées auprès du réseau de donneurs compatibles.</p>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-5">
+        {% for demande in demandes_actives %}
+        <div class="col-md-6 col-lg-4">
+            <div class="hud-card p-4 h-100 hud-card-accent-crimson d-flex flex-column justify-content-between">
+                <div>
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <span class="blood-pill fs-5">{{ demande.groupe_sanguin }}</span>
+                        <span class="badge bg-danger bg-opacity-25 text-danger font-mono small border border-danger border-opacity-50">
+                            EN ATTENTE
+                        </span>
+                    </div>
+
+                    <div class="p-3 rounded-3 mb-3" style="background: rgba(3, 6, 15, 0.6); border: 1px solid var(--clinical-border);">
+                        <div class="d-flex justify-content-between font-mono small mb-1">
+                            <span class="text-secondary">Volume Requis :</span>
+                            <span class="fw-bold text-danger">{{ demande.quantite }} poches</span>
+                        </div>
+                        <div class="d-flex justify-content-between font-mono small">
+                            <span class="text-secondary">Échéance Limite :</span>
+                            <span class="text-white">{{ demande.delai|date:"d M Y H:i" }}</span>
+                        </div>
+                    </div>
+
+                    <p class="small text-secondary mb-3">{{ demande.description|truncatechars:90 }}</p>
+                </div>
+
+                <div>
+                    <button type="button" class="btn btn-vital-outline btn-sm w-100 mb-2" data-bs-toggle="modal" data-bs-target="#modal-{{ demande.id }}">
+                        <i class="bi bi-people-fill text-info me-1"></i> Voir Engagements Volontaires ({{ demande.reponseappel_set.count }})
+                    </button>
+
+                    <div class="d-flex gap-2">
+                        <a href="{% url 'edit_demande' demande.id %}" class="btn btn-vital-outline btn-sm flex-fill text-center">
+                            <i class="bi bi-pencil me-1"></i> Modifier
+                        </a>
+                        <a href="{% url 'close_demande' demande.id %}" class="btn btn-outline-danger btn-sm flex-fill" onclick="return confirm('Confirmer la clôture de cette réquisition d urgence ?');">
+                            <i class="bi bi-check-circle me-1"></i> Clôturer
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Responses Modal -->
+        <div class="modal fade" id="modal-{{ demande.id }}" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered modal-lg">
+                <div class="modal-content modal-glass text-white">
+                    <div class="modal-header">
+                        <div>
+                            <span class="font-mono text-xs text-muted">TERMINAL DE TRIAGE DES RÉPONSES</span>
+                            <h5 class="modal-title font-display fw-bold">Volontaires Mobilisés — {{ demande.groupe_sanguin }}</h5>
+                        </div>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body p-4">
+                        {% for reponse in demande.reponseappel_set.all %}
+                        <div class="p-3 rounded-3 mb-2 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2" style="background: rgba(3, 6, 15, 0.6); border: 1px solid var(--clinical-border);">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; background: rgba(239, 35, 60, 0.15);">
+                                    <i class="bi bi-person-heart text-danger"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-bold text-white">
+                                        {{ reponse.donneur.user.get_full_name|default:reponse.donneur.user.username }}
+                                        <span class="blood-pill ms-2" style="font-size: 0.75rem;">{{ reponse.donneur.groupe_sanguin }}</span>
+                                    </div>
+                                    <div class="font-mono text-muted small" style="font-size: 0.75rem;">
+                                        Rang : {{ reponse.donneur.niveau }} · Ville : {{ reponse.donneur.ville }}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="text-md-end">
+                                <div class="font-mono small text-secondary">{{ reponse.date_reponse|date:"d/m/Y H:i" }}</div>
+                                <span class="badge bg-success bg-opacity-20 text-success border border-success border-opacity-25 font-mono small">
+                                    {{ reponse.statut }}
+                                </span>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="text-center py-4">
+                            <i class="bi bi-hourglass text-muted fs-2 mb-2 d-block"></i>
+                            <p class="text-muted small mb-0">En attente de réponse des donneurs de la région.</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-vital-outline btn-sm" data-bs-dismiss="modal">Fermer la Console</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="hud-card p-5 text-center">
+                <i class="bi bi-shield-check text-success fs-1 mb-3 d-block"></i>
+                <h5 class="text-white font-display fw-bold">Aucune Réquisition Urgente en Cours</h5>
+                <p class="text-secondary small mb-0">Vos réserves sont stables. Utilisez le bouton ci-dessus pour publier un appel si nécessaire.</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Closed Requisitions History -->
+    {% if demandes_cloturees %}
+    <div class="d-flex align-items-center gap-2 mb-3">
+        <i class="bi bi-archive text-secondary fs-5"></i>
+        <h4 class="font-display fw-bold text-white mb-0">Historique des Réquisitions Clôturées</h4>
+    </div>
+    <div class="hud-card p-0 overflow-hidden mb-5">
+        <table class="table-vital">
+            <thead>
+                <tr>
+                    <th>Groupe</th>
+                    <th>Volume</th>
+                    <th>Délai Fixé</th>
+                    <th>Volontaires</th>
+                    <th>Statut</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for demande in demandes_cloturees %}
+                <tr>
+                    <td><span class="blood-pill" style="font-size: 0.8rem;">{{ demande.groupe_sanguin }}</span></td>
+                    <td class="font-mono fw-bold text-white">{{ demande.quantite }} poches</td>
+                    <td class="font-mono text-muted small">{{ demande.delai|date:"d/m/Y H:i" }}</td>
+                    <td class="font-mono text-info">{{ demande.reponseappel_set.count }}</td>
+                    <td>
+                        <span class="badge bg-secondary bg-opacity-25 text-secondary border border-secondary font-mono small">
+                            Clôturée
+                        </span>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    var ctx = document.getElementById('activityChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin'],
+            datasets: [{
+                label: 'Volontaires Mobilisés',
+                data: [14, 21, 18, 30, 26, 38],
+                borderColor: '#ef233c',
+                backgroundColor: 'rgba(239, 35, 60, 0.12)',
+                borderWidth: 2.5,
+                fill: true,
+                tension: 0.4,
+                pointBackgroundColor: '#ef233c',
+                pointBorderColor: '#ffffff',
+                pointRadius: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    labels: { color: 'rgba(255, 255, 255, 0.7)', font: { family: 'Plus Jakarta Sans', size: 12 } }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                    ticks: { color: 'rgba(255, 255, 255, 0.6)', font: { family: 'JetBrains Mono' } }
+                },
+                x: {
+                    grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                    ticks: { color: 'rgba(255, 255, 255, 0.6)', font: { family: 'JetBrains Mono' } }
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

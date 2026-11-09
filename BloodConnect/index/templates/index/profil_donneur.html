@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+
+{% block title %}Profil Biologique Citoyen | VitalStream{% endblock %}
+
+{% block content %}
+<div class="container py-5 d-flex justify-content-center align-items-center">
+    <div class="col-lg-6 col-md-8">
+        <div class="hud-card p-4 p-md-5 hud-card-accent-unesco shadow-hud-panel">
+            <div class="mb-4 pb-3 border-bottom" style="border-color: var(--clinical-border) !important;">
+                <a href="{% url 'dashboard_donneur' %}" class="btn-vital-outline btn-sm py-1 px-3 mb-3">
+                    <i class="bi bi-arrow-left"></i> Retour au Command Deck
+                </a>
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <span class="font-mono text-xs text-muted">PARAMÈTRES D'IDENTIFICATION</span>
+                        <h3 class="font-display fw-bold text-white mb-0">Profil Biologique & Coordonnées</h3>
+                    </div>
+                    <span class="blood-pill">{{ donneur.groupe_sanguin }}</span>
+                </div>
+            </div>
+
+            <form method="post" class="glass-form-container">
+                {% csrf_token %}
+
+                <div class="row g-3">
+                    <div class="col-md-6 mb-3">
+                        <label><i class="bi bi-person me-1"></i> Prénom</label>
+                        <input type="text" name="first_name" value="{{ user.first_name }}" placeholder="Votre prénom">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label><i class="bi bi-person me-1"></i> Nom</label>
+                        <input type="text" name="last_name" value="{{ user.last_name }}" placeholder="Votre nom de famille">
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label><i class="bi bi-envelope me-1"></i> Adresse Email</label>
+                    <input type="email" name="email" value="{{ user.email }}" placeholder="email@exemple.com">
+                </div>
+
+                {% for field in form %}
+                    <div class="mb-3">
+                        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                        {{ field }}
+                        {% for error in field.errors %}
+                            <div class="text-danger small mt-1 font-mono"><i class="bi bi-exclamation-triangle"></i> {{ error }}</div>
+                        {% endfor %}
+                    </div>
+                {% endfor %}
+
+                <button type="submit" class="btn-vital-primary w-100 py-3 mt-3">
+                    <i class="bi bi-check2-circle"></i> Mettre à jour le Dossier Biologique
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

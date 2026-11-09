@@ -1,0 +1,370 @@
+{% extends 'base.html' %}
+
+{% block title %}Console de Pilotage UNESCO | VitalStream{% endblock %}
+
+{% block extra_css %}
+<style>
+    .stat-badge { font-size: 0.72rem; padding: 4px 10px; border-radius: 8px; font-family: 'JetBrains Mono', monospace; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- UNESCO Intelligence Console Header -->
+    <div class="hud-card p-4 mb-4 hud-card-accent-unesco">
+        <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
+            <div class="d-flex align-items-center gap-3">
+                <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 58px; height: 58px; background: rgba(0, 114, 206, 0.15); border: 2px solid rgba(0, 114, 206, 0.4);">
+                    <i class="bi bi-shield-lock text-info fs-3"></i>
+                </div>
+                <div>
+                    <div class="d-flex align-items-center gap-2 flex-wrap">
+                        <h3 class="font-display fw-bold text-white mb-0">Console de Pilotage UNESCO</h3>
+                        <span class="badge bg-danger bg-opacity-25 text-danger border border-danger border-opacity-50 font-mono small">
+                            SUPERADMIN ROOT ACCESS
+                        </span>
+                    </div>
+                    <div class="font-mono text-muted small mt-1" style="font-size: 0.75rem;">
+                        CENTRE STRATÉGIQUE // COUVERTURE NATIONALE & INTERNATIONALE · PROTOCOLE V4.2
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex align-items-center gap-2">
+                <a href="{% url 'export_donneurs_csv' %}" class="btn-vital-outline btn-sm py-2 px-3 font-mono">
+                    <i class="bi bi-cloud-arrow-down-fill text-info"></i> Exporter Registre CSV (UTF-8 BOM)
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4 Key Telemetry Metrics -->
+    <div class="row g-4 mb-5">
+        <div class="col-sm-6 col-lg-3">
+            <div class="hud-card p-4 h-100 hud-card-accent-unesco">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="font-mono text-xs text-muted">VOLONTAIRES ENRÔLÉS</span>
+                    <i class="bi bi-people text-info fs-5"></i>
+                </div>
+                <div class="display-5 fw-bold font-mono text-white mb-1">{{ donneurs.count }}</div>
+                <small class="text-secondary font-mono" style="font-size: 0.72rem;">Profils biologiques vérifiés</small>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-lg-3">
+            <div class="hud-card p-4 h-100 hud-card-accent-cyan">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="font-mono text-xs text-muted">CENTRES HOSPITALIERS</span>
+                    <i class="bi bi-hospital text-success fs-5"></i>
+                </div>
+                <div class="display-5 fw-bold font-mono text-success mb-1">{{ hopitaux.count }}</div>
+                <small class="text-secondary font-mono" style="font-size: 0.72rem;">Établissements référencés</small>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-lg-3">
+            <div class="hud-card p-4 h-100 hud-card-accent-crimson">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="font-mono text-xs text-muted">RÉQUISITIONS D'URGENCE</span>
+                    <span class="radar-pulse-dot"></span>
+                </div>
+                <div class="display-5 fw-bold font-mono text-danger mb-1">{{ demandes_actives.count }}</div>
+                <small class="text-danger font-mono" style="font-size: 0.72rem;">En cours de mobilisation</small>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-lg-3">
+            <div class="hud-card p-4 h-100 hud-card-accent-amber">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="font-mono text-xs text-muted">DONS CLINIQUES VALIDÉS</span>
+                    <i class="bi bi-patch-check text-warning fs-5"></i>
+                </div>
+                <div class="display-5 fw-bold font-mono text-warning mb-1">{{ total_dons }}</div>
+                <small class="text-secondary font-mono" style="font-size: 0.72rem;">Unités transfusables certifiées</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Advanced Split-Screen Command Center: Chart.js Deficit Telemetry & Leaflet Map -->
+    <div class="row g-4 mb-5">
+        <div class="col-lg-5">
+            <div class="hud-card p-4 h-100 d-flex flex-column justify-content-between">
+                <div>
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <span class="font-mono text-xs text-muted">ANALYSE DES DÉFICITS</span>
+                            <h5 class="font-display fw-bold text-white mb-0">Demandes par Groupe Sanguin</h5>
+                        </div>
+                        <span class="badge bg-danger bg-opacity-20 text-danger font-mono small">TEMPS RÉEL</span>
+                    </div>
+                    <p class="text-secondary small mb-3">Répartition des réquisitions actives nécessitant un approvisionnement immédiat.</p>
+                </div>
+
+                <div class="position-relative d-flex align-items-center justify-content-center my-3" style="min-height: 260px;">
+                    <canvas id="groupeChart"></canvas>
+                </div>
+
+                <div class="p-3 rounded-3 mt-2" style="background: rgba(3, 6, 15, 0.6); border: 1px solid var(--clinical-border);">
+                    <div class="d-flex justify-content-between font-mono small">
+                        <span class="text-secondary">Pénurie la plus critique :</span>
+                        <span class="fw-bold text-danger">
+                            {% if stats_groupes %}
+                                Groupe {{ stats_groupes.0.groupe_sanguin }} ({{ stats_groupes.0.total }} réquisitions)
+                            {% else %}
+                                Aucune urgence active
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-7">
+            <div class="hud-card p-4 h-100">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <span class="font-mono text-xs text-muted">GÉOSPATIALISATION UNESCO</span>
+                        <h5 class="font-display fw-bold text-white mb-0">Carte Tactique du Réseau d'Urgence</h5>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="radar-pulse-dot radar-pulse-cyan"></span>
+                        <span class="font-mono text-muted small" style="font-size: 0.72rem;">COORDONNÉES ACTIVES</span>
+                    </div>
+                </div>
+
+                <div id="adminMap" style="height: 380px; border-radius: 12px; z-index: 1;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hidden Bridge Elements for Chart and Map -->
+    <div id="stats-data" style="display: none;">
+        {% for stat in stats_groupes %}
+        <div class="stat-item" data-groupe="{{ stat.groupe_sanguin }}" data-total="{{ stat.total }}"></div>
+        {% endfor %}
+    </div>
+
+    <div id="demandes-map-data" style="display: none;">
+        {% for demande in demandes_actives %}
+        <div class="demande-map-item"
+             data-ville="{{ demande.hopital.ville }}"
+             data-hopital="{{ demande.hopital.nom }}"
+             data-groupe="{{ demande.groupe_sanguin }}"
+             data-quantite="{{ demande.quantite }}">
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Hospital Accreditation Management Table -->
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <div>
+            <h4 class="font-display fw-bold text-white mb-0">Homologation des Établissements Hospitaliers</h4>
+            <p class="text-secondary small mb-0">Validation des certificats d'agrément pour débloquer les droits d'émission de réquisitions.</p>
+        </div>
+    </div>
+
+    <div class="hud-card p-0 overflow-hidden mb-5">
+        <table class="table-vital">
+            <thead>
+                <tr>
+                    <th>Établissement</th>
+                    <th>Ville</th>
+                    <th>Certificat d'Agrément</th>
+                    <th>Statut d'Homologation</th>
+                    <th>Action Autorité</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for hopital in hopitaux %}
+                <tr>
+                    <td class="fw-bold text-white">{{ hopital.nom }}</td>
+                    <td class="text-secondary">{{ hopital.ville }}</td>
+                    <td><code class="font-mono text-info" style="font-size: 0.85rem;">{{ hopital.agrement }}</code></td>
+                    <td>
+                        {% if hopital.valide %}
+                            <span class="badge bg-success bg-opacity-20 text-success border border-success border-opacity-25 font-mono small">
+                                <i class="bi bi-patch-check-fill me-1"></i> HOMOLOGUÉ
+                            </span>
+                        {% else %}
+                            <span class="badge bg-warning bg-opacity-20 text-warning border border-warning border-opacity-25 font-mono small">
+                                <i class="bi bi-hourglass-split me-1"></i> EN ATTENTE
+                            </span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if not hopital.valide %}
+                        <form method="post" action="{% url 'dashboard_admin' %}" class="d-inline">
+                            {% csrf_token %}
+                            <input type="hidden" name="hopital_id" value="{{ hopital.id }}">
+                            <input type="hidden" name="action" value="valider">
+                            <button type="submit" class="btn btn-vital-cyan btn-sm py-1 px-3">
+                                <i class="bi bi-shield-check"></i> Valider l'Homologation
+                            </button>
+                        </form>
+                        {% else %}
+                        <span class="font-mono text-muted small"><i class="bi bi-check2-all text-success"></i> Accrédité</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="text-center text-muted py-4">Aucun établissement hospitalier enregistré.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Donors Registry Table -->
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <div>
+            <h4 class="font-display fw-bold text-white mb-0">Registre National des Donneurs Volontaires</h4>
+            <p class="text-secondary small mb-0">Base de données des citoyens engagés dans le protocole mondial.</p>
+        </div>
+    </div>
+
+    <div class="hud-card p-0 overflow-hidden">
+        <table class="table-vital">
+            <thead>
+                <tr>
+                    <th>Identifiant / Nom</th>
+                    <th>Groupe</th>
+                    <th>Localité</th>
+                    <th>Points XP</th>
+                    <th>Rang Citoyen</th>
+                    <th>Disponibilité</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for donneur in donneurs %}
+                <tr>
+                    <td class="fw-bold text-white font-mono">
+                        {{ donneur.user.username }}
+                        {% if donneur.user.get_full_name %}
+                            <span class="text-secondary small fw-normal d-block">({{ donneur.user.get_full_name }})</span>
+                        {% endif %}
+                    </td>
+                    <td><span class="blood-pill" style="font-size: 0.8rem;">{{ donneur.groupe_sanguin }}</span></td>
+                    <td class="text-secondary">{{ donneur.ville }}</td>
+                    <td class="font-mono fw-bold text-white">{{ donneur.points }} XP</td>
+                    <td>
+                        <span class="font-display fw-semibold text-warning small">
+                            {% if "Or" in donneur.niveau %}🥇{% elif "Argent" in donneur.niveau %}🥈{% elif "Bronze" in donneur.niveau %}🥉{% else %}🩸{% endif %}
+                            {{ donneur.niveau }}
+                        </span>
+                    </td>
+                    <td>
+                        {% if donneur.actif %}
+                            <span class="badge bg-success bg-opacity-20 text-success border border-success border-opacity-25 font-mono small">
+                                ACTIF
+                            </span>
+                        {% else %}
+                            <span class="badge bg-secondary bg-opacity-25 text-secondary border border-secondary font-mono small">
+                                PAUSE
+                            </span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center text-muted py-4">Aucun donneur enregistré pour le moment.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    // 1. Chart.js Blood Group Deficit Visualization
+    var statItems = document.querySelectorAll('.stat-item');
+    var labels = [];
+    var data = [];
+    var palette = [
+        '#ef233c', '#d90429', '#00f5d4', '#0072ce',
+        '#f59e0b', '#8b5cf6', '#ec4899', '#10b981'
+    ];
+
+    statItems.forEach(function(el) {
+        labels.push(el.getAttribute('data-groupe'));
+        data.push(parseInt(el.getAttribute('data-total'), 10));
+    });
+
+    if (labels.length > 0) {
+        var ctx = document.getElementById('groupeChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: data,
+                    backgroundColor: palette.slice(0, labels.length),
+                    borderColor: '#050814',
+                    borderWidth: 3,
+                    hoverOffset: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            color: 'rgba(255, 255, 255, 0.8)',
+                            font: { family: 'JetBrains Mono', size: 12 },
+                            padding: 16
+                        }
+                    }
+                },
+                cutout: '68%'
+            }
+        });
+    }
+
+    // 2. Leaflet.js Tactical Urgency Map
+    var map = L.map('adminMap').setView([34.5, 9.5], 6);
+
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; <a href="https://carto.com/">CARTO</a>',
+        subdomains: 'abcd',
+        maxZoom: 19
+    }).addTo(map);
+
+    var coords = {
+        "Tunis": [36.8065, 10.1815], "Sfax": [34.7406, 10.7603],
+        "Sousse": [35.8254, 10.6369], "Bizerte": [37.2744, 9.8739],
+        "Gabes": [33.8815, 10.0982], "Ariana": [36.8625, 10.1956],
+        "Monastir": [35.7643, 10.8113], "Kairouan": [35.6781, 10.0963]
+    };
+
+    var mapItems = document.querySelectorAll('.demande-map-item');
+    mapItems.forEach(function(el) {
+        var ville = el.getAttribute('data-ville');
+        var loc = coords[ville] || [36.8, 10.1];
+        var lat = loc[0] + (Math.random() - 0.5) * 0.03;
+        var lng = loc[1] + (Math.random() - 0.5) * 0.03;
+
+        L.circleMarker([lat, lng], {
+            radius: 8,
+            fillColor: '#ef233c',
+            color: '#ffffff',
+            weight: 1.5,
+            fillOpacity: 0.85
+        }).addTo(map).bindPopup(
+            '<div style="font-family: \'Plus Jakarta Sans\', sans-serif; font-size: 13px; color: #ffffff;">' +
+            '<strong style="color:#00f5d4;">' + el.getAttribute('data-hopital') + '</strong><br>' +
+            '<span style="font-family:\'JetBrains Mono\'; font-size:11px; color:#8d99ae;">VILLE : ' + ville.toUpperCase() + '</span><br>' +
+            'Besoin Critique : <span style="color:#ff4d6d; font-weight:bold; font-family:\'JetBrains Mono\';">' + el.getAttribute('data-groupe') + '</span> — <strong style="color:#ffffff;">' + el.getAttribute('data-quantite') + ' poches</strong>' +
+            '</div>'
+        );
+    });
+
+    window.addEventListener('resize', function() { map.invalidateSize(); });
+    setTimeout(function() { map.invalidateSize(); }, 300);
+});
+</script>
+{% endblock %}

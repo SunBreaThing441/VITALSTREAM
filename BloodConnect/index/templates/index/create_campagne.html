@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block title %}Planifier une Campagne de Collecte | VitalStream{% endblock %}
+
+{% block content %}
+<div class="container py-5 d-flex justify-content-center align-items-center" style="min-height: 75vh;">
+    <div class="col-lg-6 col-md-8">
+        <div class="hud-card p-4 p-md-5 hud-card-accent-unesco shadow-hud-panel">
+            <div class="d-flex align-items-center justify-content-between mb-4 pb-3 border-bottom" style="border-color: var(--clinical-border) !important;">
+                <div>
+                    <span class="font-mono text-xs text-muted">ORGANISATION D'ÉVÉNEMENT DE TRANSFUSION</span>
+                    <h3 class="font-display fw-bold text-white mb-0">Planifier une Collecte Publique</h3>
+                </div>
+                <i class="bi bi-megaphone text-info fs-3"></i>
+            </div>
+
+            <p class="text-secondary small mb-4">
+                Cette collecte sera publiée sur le réseau national VitalStream. Les volontaires pourront réserver des créneaux horaires jusqu'à concurrence de la capacité fixée.
+            </p>
+
+            <!-- Secured Campaign Scheduling Form explicitly submitting POST /campagne/nouvelle/ -->
+            <form method="post" action="{% url 'create_campagne' %}" class="glass-form-container">
+                {% csrf_token %}
+                
+                {% for field in form %}
+                    <div class="mb-3">
+                        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                        {{ field }}
+                        {% if field.help_text %}
+                            <small class="text-secondary d-block font-mono" style="font-size: 0.72rem;">{{ field.help_text }}</small>
+                        {% endif %}
+                        {% for error in field.errors %}
+                            <div class="text-danger small mt-1 font-mono"><i class="bi bi-exclamation-circle"></i> {{ error }}</div>
+                        {% endfor %}
+                    </div>
+                {% endfor %}
+
+                <div class="d-flex gap-3 mt-4 pt-3 border-top" style="border-color: var(--clinical-border) !important;">
+                    <a href="{% url 'dashboard_hopital' %}" class="btn-vital-outline py-2 px-3 flex-fill text-center">
+                        <i class="bi bi-x-circle"></i> Annuler
+                    </a>
+                    <button type="submit" class="btn-vital-primary py-2 px-4 flex-fill">
+                        <i class="bi bi-calendar-check"></i> Publier la Campagne
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

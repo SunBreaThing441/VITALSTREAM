@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+
+{% block title %}Campagnes de Collecte | VitalStream{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="d-flex align-items-center mb-4">
+        <a href="{% url 'dashboard_donneur' %}" class="btn-vital-outline btn-sm py-1 px-3 me-3">
+            <i class="bi bi-arrow-left"></i> Retour au Command Deck
+        </a>
+        <div>
+            <h3 class="font-display fw-bold text-white mb-0">Campagnes de Collecte Programmées</h3>
+            <p class="text-secondary small mb-0">Réservez un créneau horaire dédié pour votre prochain don en centre mobile ou fixe.</p>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        {% for campagne in campagnes %}
+        <div class="col-md-6">
+            <div class="hud-card p-4 h-100 hud-card-accent-unesco d-flex flex-column justify-content-between">
+                <div>
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <h5 class="font-display fw-bold text-white mb-0">{{ campagne.nom }}</h5>
+                        <span class="badge bg-info bg-opacity-20 text-info border border-info border-opacity-30 font-mono small">
+                            <i class="bi bi-calendar-event me-1"></i> {{ campagne.date|date:"d M Y" }}
+                        </span>
+                    </div>
+
+                    <div class="p-3 rounded-3 mb-3" style="background: rgba(3, 6, 15, 0.6); border: 1px solid var(--clinical-border);">
+                        <p class="mb-1 text-white small"><i class="bi bi-geo-alt text-danger me-1"></i> {{ campagne.lieu }}</p>
+                        <p class="mb-0 text-secondary small"><i class="bi bi-hospital text-info me-1"></i> Organisé par : {{ campagne.hopital.nom }}</p>
+                    </div>
+
+                    <div class="d-flex align-items-center gap-2 mb-3">
+                        <span class="font-mono text-muted small" style="font-size: 0.75rem;">GROUPES CIBLES :</span>
+                        <span class="blood-pill" style="font-size: 0.75rem;">{{ campagne.groupes_cibles }}</span>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center mb-3 font-mono small">
+                        <span class="text-secondary">
+                            <i class="bi bi-people me-1"></i> {{ campagne.inscription_set.count }} / {{ campagne.capacite_totale }} Créneaux
+                        </span>
+                        {% if campagne.inscription_set.count >= campagne.capacite_totale %}
+                            <span class="badge bg-secondary font-mono small">COMPLET</span>
+                        {% else %}
+                            <span class="badge bg-success bg-opacity-20 text-success border border-success border-opacity-25 font-mono small">PLACES DISPONIBLES</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div>
+                    {% if campagne.id in inscriptions_ids %}
+                        <button type="button" class="btn btn-vital-outline w-100 disabled-action" disabled>
+                            <i class="bi bi-check2-circle text-success"></i> Déjà Inscrit à cette Collecte
+                        </button>
+                    {% elif campagne.inscription_set.count >= campagne.capacite_totale %}
+                        <button type="button" class="btn btn-vital-outline w-100 disabled-action" disabled>
+                            Collecte Complète
+                        </button>
+                    {% else %}
+                        <form method="post" action="{% url 'inscrire_campagne' campagne.id %}">
+                            {% csrf_token %}
+                            <div class="mb-2">
+                                <label class="font-mono text-muted small d-block mb-1">Sélectionner un créneau horaire :</label>
+                                <input type="time" name="creneau" required
+                                       style="background: rgba(8, 14, 33, 0.8); border: 1px solid var(--clinical-border); color: white; border-radius: 8px; padding: 8px 12px; width: 100%;">
+                            </div>
+                            <button type="submit" class="btn-vital-primary w-100 mt-2">
+                                <i class="bi bi-calendar-plus"></i> Réserver mon Créneau (+50 XP)
+                            </button>
+                        </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="hud-card p-5 text-center">
+                <i class="bi bi-calendar-x text-muted fs-1 mb-3 d-block"></i>
+                <h5 class="text-white font-display fw-bold">Aucune Campagne Programmée</h5>
+                <p class="text-secondary small mb-0">De nouvelles collectes publiques seront bientôt planifiées par les centres hospitaliers.</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

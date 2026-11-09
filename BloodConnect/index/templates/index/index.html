@@ -1,0 +1,253 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}VitalStream | UNESCO Global Blood Initiative{% endblock %}
+
+{% block content %}
+<!-- Mission Command Hero -->
+<section class="container py-5 my-4">
+    <div class="row align-items-center g-5">
+        <div class="col-lg-7 text-start">
+            <div class="d-inline-flex align-items-center gap-2 mb-3 px-3 py-1 rounded-pill" style="background: rgba(0, 114, 206, 0.15); border: 1px solid rgba(0, 114, 206, 0.35);">
+                <span class="radar-pulse-dot radar-pulse-cyan"></span>
+                <span class="font-mono text-xs fw-bold text-info" style="font-size: 0.75rem;">UNESCO GLOBAL HEALTH INFRASTRUCTURE // ACTIVE DISPATCH</span>
+            </div>
+            
+            <h1 class="display-3 fw-bolder mb-3 text-gradient font-display lh-1">
+                L'Algorithme Mondial <br>
+                <span class="text-gradient-red">du Don de Sang.</span>
+            </h1>
+            
+            <p class="lead mb-4 text-secondary" style="font-size: 1.15rem; max-width: 620px;">
+                VitalStream orchestre la réserve biologique mondiale. Connectez les banques hospitalières en détresse aux volontaires compatibles en quelques secondes, avec respect absolu des délais physiologiques.
+            </p>
+
+            <div class="d-flex flex-wrap gap-3 mb-5">
+                <a href="{% url 'register_donneur' %}" class="btn-vital-primary py-3 px-4 shadow-lg">
+                    <i class="bi bi-person-heart fs-5"></i>
+                    <span>Mobilisation Donneur Citoyen</span>
+                </a>
+                <a href="{% url 'register_hopital' %}" class="btn-vital-outline py-3 px-4">
+                    <i class="bi bi-hospital fs-5 text-info"></i>
+                    <span>Accréditer un Hôpital</span>
+                </a>
+            </div>
+
+            <!-- Quick Protocol Micro-Badges -->
+            <div class="row g-3 pt-3 border-top" style="border-color: var(--clinical-border) !important;">
+                <div class="col-sm-4">
+                    <div class="font-mono text-xs text-muted">DÉLAIS BIOLOGIQUES</div>
+                    <div class="font-display fw-bold text-white small">56j (H) · 84j (F)</div>
+                </div>
+                <div class="col-sm-4">
+                    <div class="font-mono text-xs text-muted">RÉPONSE D'URGENCE</div>
+                    <div class="font-display fw-bold text-info small">Dispersion Instantanée</div>
+                </div>
+                <div class="col-sm-4">
+                    <div class="font-mono text-xs text-muted">SÉCURITÉ CLINIQUE</div>
+                    <div class="font-display fw-bold text-success small">Accréditation Vérifiée</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Interactive Mission Telemetry Console -->
+        <div class="col-lg-5">
+            <div class="hud-card p-4 hud-card-accent-crimson shadow-hud-panel">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <span class="font-mono text-xs text-muted">TELEMETRY MATRIX // REAL-TIME</span>
+                        <h5 class="font-display fw-bold text-white mb-0">Réseau d'Urgence Actif</h5>
+                    </div>
+                    <span class="badge bg-danger bg-opacity-25 text-danger border border-danger border-opacity-50 font-mono small px-2 py-1">
+                        LIVE HUD
+                    </span>
+                </div>
+
+                <div class="row g-3 mb-4">
+                    <div class="col-6">
+                        <div class="p-3 rounded-3" style="background: rgba(3, 6, 15, 0.7); border: 1px solid var(--clinical-border);">
+                            <div class="font-mono text-xs text-secondary mb-1">DONNEURS ENRÔLÉS</div>
+                            <div class="display-6 fw-bold text-white font-mono">1,480+</div>
+                            <small class="text-success font-mono" style="font-size: 0.7rem;"><i class="bi bi-graph-up-arrow"></i> +14% ce mois</small>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="p-3 rounded-3" style="background: rgba(3, 6, 15, 0.7); border: 1px solid var(--clinical-border);">
+                            <div class="font-mono text-xs text-secondary mb-1">POCHES DISTRIBUÉES</div>
+                            <div class="display-6 fw-bold text-danger font-mono">420+</div>
+                            <small class="text-danger font-mono" style="font-size: 0.7rem;"><i class="bi bi-droplet-fill"></i> Taux critique</small>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="p-3 rounded-3" style="background: rgba(3, 6, 15, 0.7); border: 1px solid var(--clinical-border);">
+                            <div class="font-mono text-xs text-secondary mb-1">TEMPS D'ALERTE MOYEN</div>
+                            <div class="display-6 fw-bold text-info font-mono">&lt; 12s</div>
+                            <small class="text-muted font-mono" style="font-size: 0.7rem;">Automated Push</small>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="p-3 rounded-3" style="background: rgba(3, 6, 15, 0.7); border: 1px solid var(--clinical-border);">
+                            <div class="font-mono text-xs text-secondary mb-1">CENTRES ACCRÉDITÉS</div>
+                            <div class="display-6 fw-bold text-success font-mono">38</div>
+                            <small class="text-success font-mono" style="font-size: 0.7rem;">100% Certifiés</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Live Regional Pulse -->
+                <div class="p-3 rounded-3" style="background: rgba(239, 35, 60, 0.08); border: 1px solid rgba(239, 35, 60, 0.25);">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="radar-pulse-dot"></span>
+                            <span class="font-mono text-xs fw-bold text-danger">ALERTE CRITIQUE DISPONIBLE</span>
+                        </div>
+                        <span class="font-mono text-xs text-muted">Groupe O- / A-</span>
+                    </div>
+                    <p class="small text-secondary mb-0 mt-2" style="font-size: 0.8rem;">
+                        Les banques hospitalières régionales recherchent prioritairement les donneurs universels. Votre mobilisation immédiate sauve des vies.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Interactive Blood Compatibility Matrix -->
+<section class="container py-5 my-4">
+    <div class="text-center mb-5">
+        <span class="brand-unesco-badge mb-2 d-inline-block">BIOMETRIC INTELLIGENCE</span>
+        <h2 class="font-display fw-bold text-white display-6">Matrice d'Intercompatibilité Sanguine</h2>
+        <p class="text-secondary small">Sélectionnez votre groupe sanguin pour visualiser instantanément vos récepteurs et donneurs compatibles.</p>
+    </div>
+
+    <div class="hud-card p-4 p-md-5">
+        <div class="d-flex justify-content-center gap-2 flex-wrap mb-4" id="bloodTypeSelector">
+            <button class="btn btn-vital-outline blood-selector active px-3 py-2 font-mono fw-bold" data-blood="O-">O- (Donneur Universel)</button>
+            <button class="btn btn-vital-outline blood-selector px-3 py-2 font-mono fw-bold" data-blood="O+">O+</button>
+            <button class="btn btn-vital-outline blood-selector px-3 py-2 font-mono fw-bold" data-blood="A-">A-</button>
+            <button class="btn btn-vital-outline blood-selector px-3 py-2 font-mono fw-bold" data-blood="A+">A+</button>
+            <button class="btn btn-vital-outline blood-selector px-3 py-2 font-mono fw-bold" data-blood="B-">B-</button>
+            <button class="btn btn-vital-outline blood-selector px-3 py-2 font-mono fw-bold" data-blood="B+">B+</button>
+            <button class="btn btn-vital-outline blood-selector px-3 py-2 font-mono fw-bold" data-blood="AB-">AB-</button>
+            <button class="btn btn-vital-outline blood-selector px-3 py-2 font-mono fw-bold" data-blood="AB+">AB+ (Receveur Universel)</button>
+        </div>
+
+        <div class="row g-4 text-start">
+            <div class="col-md-6">
+                <div class="p-4 rounded-3 h-100" style="background: rgba(3, 6, 15, 0.7); border: 1px solid rgba(239, 35, 60, 0.3);">
+                    <div class="d-flex align-items-center gap-2 mb-3">
+                        <i class="bi bi-arrow-up-right-circle-fill text-danger fs-4"></i>
+                        <h5 class="font-display fw-bold text-white mb-0">Vous pouvez donner à :</h5>
+                    </div>
+                    <div id="canGiveTo" class="d-flex flex-wrap gap-2">
+                        <!-- Injected via JavaScript -->
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="p-4 rounded-3 h-100" style="background: rgba(3, 6, 15, 0.7); border: 1px solid rgba(0, 245, 212, 0.3);">
+                    <div class="d-flex align-items-center gap-2 mb-3">
+                        <i class="bi bi-arrow-down-left-circle-fill text-info fs-4"></i>
+                        <h5 class="font-display fw-bold text-white mb-0">Vous pouvez recevoir de :</h5>
+                    </div>
+                    <div id="canReceiveFrom" class="d-flex flex-wrap gap-2">
+                        <!-- Injected via JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 3-Phase Algorithmic Protocol -->
+<section class="container py-5 my-4">
+    <div class="text-center mb-5">
+        <span class="brand-badge mb-2 d-inline-block">ARCHITECTURE SYSTÈME</span>
+        <h2 class="font-display fw-bold text-white display-6">Protocole VitalStream en 3 Phases</h2>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-md-4">
+            <div class="hud-card p-4 h-100 hud-card-accent-unesco">
+                <div class="font-mono text-muted mb-2 fs-5">01 // RECON</div>
+                <h4 class="font-display fw-bold text-white mb-3">Inscription & Horodatage Biologique</h4>
+                <p class="text-secondary small">
+                    Création du profil sécurisé. Le moteur calcule mathématiquement la fenêtre de non-éligibilité (56 jours pour hommes, 84 jours pour femmes) garantissant l'intégrité de l'organisme.
+                </p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="hud-card p-4 h-100 hud-card-accent-crimson">
+                <div class="font-mono text-muted mb-2 fs-5">02 // DISPATCH</div>
+                <h4 class="font-display fw-bold text-white mb-3">Détection & Triage Algorithmique</h4>
+                <p class="text-secondary small">
+                    Dès qu'un hôpital agréé publie un besoin d'urgence avec volume et délai, les donneurs compatibles de la zone reçoivent instantanément la réquisition tactique.
+                </p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="hud-card p-4 h-100 hud-card-accent-cyan">
+                <div class="font-mono text-muted mb-2 fs-5">03 // CONFIRMATION</div>
+                <h4 class="font-display fw-bold text-white mb-3">Validation Clinique & Honorariat</h4>
+                <p class="text-secondary small">
+                    Après le don physique en centre agréé, l'action est enregistrée. Le donneur accumule des points d'honneur et gravit les échelons jusqu'au rang suprême de <strong>Sauveur d'Or</strong>.
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Final Call to Action -->
+<section class="container py-5 text-center mb-5">
+    <div class="hud-card p-5 hud-card-accent-unesco text-center position-relative">
+        <h2 class="display-5 font-display fw-bold text-white mb-3">Participez à la Sécurité Biologique Mondiale</h2>
+        <p class="lead text-secondary mb-4 mx-auto" style="max-width: 600px;">
+            Que vous soyez volontaire ou représentant d'un centre hospitalier, chaque seconde épargnée préserve une existence.
+        </p>
+        <div class="d-flex justify-content-center gap-3 flex-wrap">
+            <a href="{% url 'register_donneur' %}" class="btn-vital-primary py-3 px-4">
+                <i class="bi bi-heart-pulse"></i> Je m'enrôle comme Donneur
+            </a>
+            <a href="{% url 'login' %}" class="btn-vital-outline py-3 px-4">
+                <i class="bi bi-shield-lock"></i> Accéder au Terminal
+            </a>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const matrix = {
+        "O-": { gives: ["O-", "O+", "A-", "A+", "B-", "B+", "AB-", "AB+"], receives: ["O-"] },
+        "O+": { gives: ["O+", "A+", "B+", "AB+"], receives: ["O-", "O+"] },
+        "A-": { gives: ["A-", "A+", "AB-", "AB+"], receives: ["O-", "A-"] },
+        "A+": { gives: ["A+", "AB+"], receives: ["O-", "O+", "A-", "A+"] },
+        "B-": { gives: ["B-", "B+", "AB-", "AB+"], receives: ["O-", "B-"] },
+        "B+": { gives: ["B+", "AB+"], receives: ["O-", "O+", "B-", "B+"] },
+        "AB-": { gives: ["AB-", "AB+"], receives: ["O-", "A-", "B-", "AB-"] },
+        "AB+": { gives: ["AB+"], receives: ["O-", "O+", "A-", "A+", "B-", "B+", "AB-", "AB+"] }
+    };
+
+    function renderCompatibility(type) {
+        const data = matrix[type];
+        const giveContainer = document.getElementById("canGiveTo");
+        const recvContainer = document.getElementById("canReceiveFrom");
+
+        giveContainer.innerHTML = data.gives.map(b => `<span class="blood-pill fs-6">${b}</span>`).join(" ");
+        recvContainer.innerHTML = data.receives.map(b => `<span class="blood-pill blood-pill-cyan fs-6">${b}</span>`).join(" ");
+    }
+
+    renderCompatibility("O-");
+
+    document.querySelectorAll(".blood-selector").forEach(btn => {
+        btn.addEventListener("click", function() {
+            document.querySelectorAll(".blood-selector").forEach(b => b.classList.remove("active", "btn-vital-primary"));
+            this.classList.add("active", "btn-vital-primary");
+            renderCompatibility(this.getAttribute("data-blood"));
+        });
+    });
+});
+</script>
+{% endblock %}

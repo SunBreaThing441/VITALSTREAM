@@ -1,0 +1,372 @@
+{% extends 'base.html' %}
+
+{% block title %}Command Deck Donneur | VitalStream{% endblock %}
+
+{% block extra_css %}
+<style>
+    .cooldown-ring {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .hud-progress {
+        height: 6px;
+        background: rgba(255, 255, 255, 0.08);
+        border-radius: 10px;
+        overflow: hidden;
+    }
+    .hud-progress-bar {
+        height: 100%;
+        background: linear-gradient(90deg, #ef233c, #ff4d6d);
+        border-radius: 10px;
+    }
+    .hud-progress-gold {
+        background: linear-gradient(90deg, #f59e0b, #fbbf24);
+    }
+    .disabled-action {
+        opacity: 0.55;
+        cursor: not-allowed !important;
+        pointer-events: none;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Tactical Donor Header -->
+    <div class="hud-card p-4 mb-4">
+        <div class="d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-3">
+            <div class="d-flex align-items-center gap-3">
+                <div class="position-relative">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 58px; height: 58px; background: rgba(239, 35, 60, 0.15); border: 2px solid rgba(239, 35, 60, 0.4);">
+                        <i class="bi bi-person-fill text-danger fs-3"></i>
+                    </div>
+                    {% if donneur.actif %}
+                        <span class="position-absolute bottom-0 end-0 radar-pulse-dot radar-pulse-cyan"></span>
+                    {% else %}
+                        <span class="position-absolute bottom-0 end-0 bg-secondary rounded-circle" style="width: 10px; height: 10px;"></span>
+                    {% endif %}
+                </div>
+                <div>
+                    <div class="d-flex align-items-center gap-2 flex-wrap">
+                        <h3 class="font-display fw-bold text-white mb-0">{{ user.first_name|default:user.username }}</h3>
+                        <span class="blood-pill">{{ donneur.groupe_sanguin }}</span>
+                        <span class="badge font-mono small {% if donneur.actif %}bg-success bg-opacity-25 text-success border border-success border-opacity-50{% else %}bg-secondary bg-opacity-25 text-secondary border border-secondary{% endif %}">
+                            {% if donneur.actif %}DISPONIBLE EN CAS D'URGENCE{% else %}EN PAUSE TEMPORAIRE{% endif %}
+                        </span>
+                    </div>
+                    <div class="font-mono text-muted small mt-1" style="font-size: 0.75rem;">
+                        IDENTIFIANT: VTL-{{ donneur.id|stringformat:"05d" }} · VILLE: {{ donneur.ville|upper }} · SEXE: {% if donneur.sexe == 'M' %}HOMME (56j COOLDOWN){% else %}FEMME (84j COOLDOWN){% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+                <a href="{% url 'profil_donneur' %}" class="btn-vital-outline btn-sm py-2 px-3">
+                    <i class="bi bi-sliders"></i> Profil & Paramètres
+                </a>
+                <a href="{% url 'toggle_actif' %}" class="btn-vital-outline btn-sm py-2 px-3">
+                    {% if donneur.actif %}
+                        <i class="bi bi-pause-circle text-warning"></i> Se mettre en pause
+                    {% else %}
+                        <i class="bi bi-play-circle text-success"></i> Réactiver la disponibilité
+                    {% endif %}
+                </a>
+                <a href="{% url 'enregistrer_don' %}" class="btn-vital-primary btn-sm py-2 px-3">
+                    <i class="bi bi-plus-circle"></i> Enregistrer un Don (+100 XP)
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3 Glassmorphic Status Cards -->
+    <div class="row g-4 mb-5">
+        <!-- 1. Tier & XP Progression -->
+        <div class="col-lg-4">
+            <div class="hud-card p-4 h-100 hud-card-accent-amber">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <span class="font-mono text-xs text-muted">HONORARY CITIZEN TIER</span>
+                    <span class="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25 font-mono small">
+                        LEVEL PROGRESS
+                    </span>
+                </div>
+                
+                <div class="d-flex align-items-center gap-3 mb-3">
+                    <div class="display-4">
+                        {% if "Or" in niveau %}🥇{% elif "Argent" in niveau %}🥈{% elif "Bronze" in niveau %}🥉{% else %}🩸{% endif %}
+                    </div>
+                    <div>
+                        <h4 class="font-display fw-bold text-warning mb-0">{{ niveau }}</h4>
+                        <div class="font-mono fw-bold text-white fs-5">{{ points }} <span class="text-secondary small">XP</span></div>
+                    </div>
+                </div>
+
+                <div class="mt-3">
+                    <div class="d-flex justify-content-between font-mono small text-secondary mb-1" style="font-size: 0.72rem;">
+                        <span>Paliers d'Honneur</span>
+                        <span>
+                            {% if points < 100 %}Objectif: Bronze (100 XP)
+                            {% elif points < 500 %}Objectif: Argent (500 XP)
+                            {% elif points < 1000 %}Objectif: Or (1000 XP)
+                            {% else %}Grade Suprême Atteint
+                            {% endif %}
+                        </span>
+                    </div>
+                    <div class="hud-progress">
+                        {% if points < 100 %}
+                            <div class="hud-progress-bar" style="width: {{ points }}%;"></div>
+                        {% elif points < 500 %}
+                            <div class="hud-progress-bar" style="width: {% widthratio points 500 100 %}%;"></div>
+                        {% elif points < 1000 %}
+                            <div class="hud-progress-bar hud-progress-gold" style="width: {% widthratio points 1000 100 %}%;"></div>
+                        {% else %}
+                            <div class="hud-progress-bar hud-progress-gold" style="width: 100%;"></div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Biological Cooldown & Eligibility -->
+        <div class="col-lg-4">
+            <div class="hud-card p-4 h-100 {% if est_eligible %}hud-card-accent-cyan{% else %}hud-card-accent-crimson{% endif %}">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <span class="font-mono text-xs text-muted">BIOLOGICAL ELIGIBILITY // PROTOCOL</span>
+                    <span class="badge font-mono small {% if est_eligible %}bg-success bg-opacity-20 text-success border border-success border-opacity-25{% else %}bg-danger bg-opacity-20 text-danger border border-danger border-opacity-25{% endif %}">
+                        {% if est_eligible %}PRÊT AU DON{% else %}RÉGÉNÉRATION EN COURS{% endif %}
+                    </span>
+                </div>
+
+                <div class="d-flex align-items-center gap-3 mb-2">
+                    <div class="display-4">
+                        {% if est_eligible %}
+                            <i class="bi bi-shield-check text-success"></i>
+                        {% else %}
+                            <i class="bi bi-hourglass-split text-danger"></i>
+                        {% endif %}
+                    </div>
+                    <div>
+                        {% if est_eligible %}
+                            <h4 class="font-display fw-bold text-success mb-0">Éligible Immédiatement</h4>
+                            <p class="text-secondary small mb-0">Votre réserve biologique est régénérée. Vous pouvez sauver une vie dès aujourd'hui.</p>
+                        {% else %}
+                            <h4 class="font-display fw-bold text-danger mb-0">Délai Physiologique</h4>
+                            <p class="text-secondary small mb-0">Prochain don autorisé à partir du :</p>
+                            <span class="font-mono fw-bold text-white fs-6">{{ prochaine_date|date:"d F Y" }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="mt-3 pt-2 border-top" style="border-color: var(--clinical-border) !important;">
+                    <small class="text-muted font-mono" style="font-size: 0.72rem;">
+                        <i class="bi bi-info-circle"></i> Règle clinique : 56 jours pour hommes / 84 jours pour femmes entre 2 dons validés.
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Civic Impact & Historical Contributions -->
+        <div class="col-lg-4">
+            <div class="hud-card p-4 h-100 hud-card-accent-unesco">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <span class="font-mono text-xs text-muted">IMPACT HUMANITAIRE</span>
+                    <span class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 font-mono small">
+                        LIVES TOUCHED
+                    </span>
+                </div>
+
+                <div class="d-flex align-items-baseline gap-2 mb-2">
+                    <div class="display-4 font-mono fw-bold text-white">{{ donneur.don_set.count }}</div>
+                    <span class="text-muted font-mono">Dons Réalisés</span>
+                </div>
+
+                <div class="p-3 rounded-3" style="background: rgba(3, 6, 15, 0.6); border: 1px solid var(--clinical-border);">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="small text-secondary">Vies Potentiellement Préservées :</span>
+                        <span class="font-mono fw-bold text-info fs-5">{{ donneur.don_set.count|add:donneur.don_set.count|add:donneur.don_set.count }}</span>
+                    </div>
+                    <small class="text-muted" style="font-size: 0.7rem;">(Estimation : 1 don de sang total = jusqu'à 3 composants sanguins séparés)</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Booked Campaigns Strip (if any) -->
+    {% if inscriptions %}
+    <div class="hud-card p-4 mb-5 hud-card-accent-amber">
+        <div class="d-flex align-items-center justify-content-between mb-3">
+            <div class="d-flex align-items-center gap-2">
+                <i class="bi bi-calendar-check text-warning fs-5"></i>
+                <h5 class="font-display fw-bold text-white mb-0">Mes Engagements — Campagnes Programmées</h5>
+            </div>
+            <a href="{% url 'list_campagnes' %}" class="btn-vital-outline btn-sm py-1 px-3 font-mono small">Toutes les campagnes</a>
+        </div>
+        <div class="row g-3">
+            {% for insc in inscriptions %}
+            <div class="col-md-6 col-lg-4">
+                <div class="p-3 rounded-3 h-100" style="background: rgba(3, 6, 15, 0.7); border: 1px solid var(--clinical-border);">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <h6 class="font-display fw-bold text-info mb-0">{{ insc.campagne.nom }}</h6>
+                        <span class="badge bg-info bg-opacity-20 text-info font-mono small">{{ insc.creneau_horaire|time:"H:i" }}</span>
+                    </div>
+                    <p class="small text-secondary mb-1">
+                        <i class="bi bi-calendar-event me-1"></i> {{ insc.campagne.date|date:"l d F Y" }}
+                    </p>
+                    <p class="small text-secondary mb-0">
+                        <i class="bi bi-geo-alt me-1"></i> {{ insc.campagne.lieu }} ({{ insc.campagne.hopital.nom }})
+                    </p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Compatible Urgent Demands Section -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-4">
+        <div>
+            <div class="d-flex align-items-center gap-2">
+                <span class="radar-pulse-dot"></span>
+                <h3 class="font-display fw-bold text-white mb-0">Réquisitions d'Urgence Actives</h3>
+            </div>
+            <p class="text-secondary small mb-0">Besoins critiques signalés par les centres hospitaliers accrédités.</p>
+        </div>
+        <a href="{% url 'list_campagnes' %}" class="btn-vital-outline btn-sm py-2 px-3">
+            <i class="bi bi-megaphone me-1"></i> Explorer les Collectes Publiques
+        </a>
+    </div>
+
+    <div class="row g-4 mb-5">
+        {% for demande in demandes %}
+        <div class="col-md-6">
+            <div class="hud-card p-4 h-100 hud-card-accent-crimson">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="blood-pill fs-5">{{ demande.groupe_sanguin }}</span>
+                        <div>
+                            <span class="badge bg-danger bg-opacity-25 text-danger border border-danger border-opacity-50 font-mono small">
+                                URGENCE IMMÉDIATE
+                            </span>
+                        </div>
+                    </div>
+                    <div class="text-end">
+                        <span class="font-mono fw-bold text-danger fs-5">{{ demande.quantite }}</span>
+                        <div class="font-mono text-muted" style="font-size: 0.7rem;">POCHES REQUISES</div>
+                    </div>
+                </div>
+
+                <div class="p-3 rounded-3 mb-3" style="background: rgba(3, 6, 15, 0.6); border: 1px solid var(--clinical-border);">
+                    <div class="d-flex align-items-center gap-2 mb-1">
+                        <i class="bi bi-hospital text-info"></i>
+                        <span class="fw-bold text-white">{{ demande.hopital.nom }}</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-2 text-secondary small">
+                        <i class="bi bi-geo-alt"></i>
+                        <span>{{ demande.hopital.ville }} · Délai limite : {{ demande.delai|date:"d/m/Y H:i" }}</span>
+                    </div>
+                </div>
+
+                <p class="small text-secondary mb-3">{{ demande.description|default:"Besoin urgent de composants sanguins compatibles pour intervention chirurgicale." }}</p>
+
+                <div class="mt-3">
+                    {% if demande.id in reponses_donneur %}
+                        <button type="button" class="btn btn-vital-outline w-100 disabled-action" disabled>
+                            <i class="bi bi-check2-circle text-success"></i> Engagement Déjà Transmis
+                        </button>
+                    {% elif not donneur.actif %}
+                        <button type="button" class="btn btn-vital-outline w-100 disabled-action" disabled>
+                            <i class="bi bi-pause-circle"></i> Compte Actuellement en Pause
+                        </button>
+                    {% elif not est_eligible %}
+                        <button type="button" class="btn btn-vital-outline w-100 disabled-action" disabled>
+                            <i class="bi bi-hourglass-split text-danger"></i> Non Éligible (Cooldown Actif)
+                        </button>
+                    {% else %}
+                        <!-- Direct GET /demande/<id>/repondre/ action triggering +25 XP -->
+                        <a href="{% url 'repondre_demande' demande.id %}" class="btn-vital-primary w-100 py-2 text-decoration-none d-flex align-items-center justify-content-center gap-2">
+                            <i class="bi bi-heart-pulse-fill"></i> Je réponds à l'appel d'urgence (+25 XP)
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="hud-card p-5 text-center">
+                <i class="bi bi-check-circle text-success fs-1 mb-3 d-block"></i>
+                <h5 class="text-white font-display fw-bold">Aucune Urgence Critique Signalée</h5>
+                <p class="text-secondary small mb-0">Tous les besoins régionaux immédiats sont pourvus ou sous contrôle.</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Tactical CartoDB Urgency Map -->
+    <div class="d-flex align-items-center gap-2 mb-3">
+        <i class="bi bi-geo-alt-fill text-danger fs-5"></i>
+        <h4 class="font-display fw-bold text-white mb-0">Carte Tactique des Demandes d'Urgence</h4>
+    </div>
+    <div class="hud-card p-2 mb-5">
+        <div id="urgencyMap" style="height: 420px; border-radius: 12px; z-index: 1;"></div>
+    </div>
+
+    <!-- Hidden data bridge for Map rendering -->
+    <div id="urgences-data" style="display: none;">
+        {% for demande in demandes %}
+        <div class="urgence-item"
+             data-ville="{{ demande.hopital.ville }}"
+             data-hopital="{{ demande.hopital.nom }}"
+             data-groupe="{{ demande.groupe_sanguin }}"
+             data-quantite="{{ demande.quantite }}">
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    var map = L.map('urgencyMap').setView([34.5, 9.5], 6);
+
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; <a href="https://carto.com/">CARTO</a>',
+        subdomains: 'abcd',
+        maxZoom: 19
+    }).addTo(map);
+
+    var coords = {
+        "Tunis": [36.8065, 10.1815], "Sfax": [34.7406, 10.7603],
+        "Sousse": [35.8254, 10.6369], "Bizerte": [37.2744, 9.8739],
+        "Gabes": [33.8815, 10.0982], "Ariana": [36.8625, 10.1956],
+        "Monastir": [35.7643, 10.8113], "Kairouan": [35.6781, 10.0963]
+    };
+
+    var items = document.querySelectorAll('.urgence-item');
+    items.forEach(function(el) {
+        var ville = el.getAttribute('data-ville');
+        var loc = coords[ville] || [36.8, 10.1];
+        var lat = loc[0] + (Math.random() - 0.5) * 0.04;
+        var lng = loc[1] + (Math.random() - 0.5) * 0.04;
+
+        L.circleMarker([lat, lng], {
+            radius: 9,
+            fillColor: '#ef233c',
+            color: '#ffffff',
+            weight: 2,
+            fillOpacity: 0.85
+        }).addTo(map).bindPopup(
+            '<div style="font-family: \'Plus Jakarta Sans\', sans-serif; font-size: 13px; color: #ffffff;">' +
+            '<strong style="color:#00f5d4;">' + el.getAttribute('data-hopital') + '</strong><br>' +
+            '<span style="font-family:\'JetBrains Mono\'; font-size:11px; color:#8d99ae;">VILLE : ' + ville.toUpperCase() + '</span><br>' +
+            'Besoin Critique : <span style="color:#ff4d6d; font-weight:bold; font-family:\'JetBrains Mono\';">' + el.getAttribute('data-groupe') + '</span> — <strong style="color:#ffffff;">' + el.getAttribute('data-quantite') + ' poches</strong>' +
+            '</div>'
+        );
+    });
+
+    window.addEventListener('resize', function() { map.invalidateSize(); });
+    setTimeout(function() { map.invalidateSize(); }, 300);
+});
+</script>
+{% endblock %}

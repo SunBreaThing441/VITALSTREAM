@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+
+{% block title %}Enregistrer un Don de Sang | VitalStream{% endblock %}
+
+{% block content %}
+<div class="container py-5 d-flex justify-content-center align-items-center" style="min-height: 75vh;">
+    <div class="col-lg-6 col-md-8">
+        <div class="hud-card p-4 p-md-5 hud-card-accent-cyan shadow-hud-panel">
+            <div class="mb-4 pb-3 border-bottom" style="border-color: var(--clinical-border) !important;">
+                <a href="{% url 'dashboard_donneur' %}" class="btn-vital-outline btn-sm py-1 px-3 mb-3">
+                    <i class="bi bi-arrow-left"></i> Retour au Command Deck
+                </a>
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <span class="font-mono text-xs text-muted">VALIDATION CLINIQUE DU DON</span>
+                        <h3 class="font-display fw-bold text-white mb-0">Enregistrer un Don Réalisé</h3>
+                    </div>
+                    <span class="blood-pill blood-pill-cyan">+100 XP</span>
+                </div>
+            </div>
+
+            <p class="text-secondary small mb-4">
+                Cette déclaration recalcule mathématiquement votre prochain délai physiologique (56 ou 84 jours) et crédite instantanément votre compte citoyen de 100 points d'honneur.
+            </p>
+
+            <!-- Secured Donation Logging Form explicitly submitting POST /donneur/enregistrer-don/ -->
+            <form method="post" action="{% url 'enregistrer_don' %}" class="glass-form-container">
+                {% csrf_token %}
+
+                <div class="mb-3">
+                    <label for="date_don"><i class="bi bi-calendar-check me-1"></i> Date d'extraction du don</label>
+                    <input type="date" name="date_don" id="date_don" required>
+                </div>
+
+                <div class="mb-3">
+                    <label for="hopital_id"><i class="bi bi-hospital me-1"></i> Établissement médical récepteur</label>
+                    <select name="hopital_id" id="hopital_id">
+                        <option value="">— Sélectionner l'hôpital partenaire —</option>
+                        {% for hopital in hopitaux %}
+                        <option value="{{ hopital.id }}">{{ hopital.nom }} ({{ hopital.ville }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label for="notes"><i class="bi bi-journal-medical me-1"></i> Notes cliniques (Optionnel)</label>
+                    <textarea name="notes" id="notes" rows="3" placeholder="Volume prélevé, observations médicales..."></textarea>
+                </div>
+
+                <button type="submit" class="btn-vital-primary w-100 py-3 mt-3">
+                    <i class="bi bi-check2-circle"></i> Valider et Créditer +100 XP
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

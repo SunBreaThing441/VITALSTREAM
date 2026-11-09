@@ -1,0 +1,177 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}VitalStream | UNESCO Global Blood Initiative{% endblock %}</title>
+    
+    <!-- Design System Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Framework Styles -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+<nav class="navbar navbar-glass py-3">
+    <div class="container d-flex justify-content-between align-items-center">
+        <a href="{% url 'index' %}" class="text-decoration-none d-flex align-items-center gap-2">
+            <div class="radar-pulse-dot me-1"></div>
+            <div>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="font-display fw-bold text-white fs-5 tracking-wide-sm">VITALSTREAM</span>
+                    <span class="brand-unesco-badge">UNESCO INITIATIVE</span>
+                </div>
+                <div class="font-mono text-xs opacity-50" style="font-size: 0.68rem; letter-spacing: 0.05em;">GLOBAL BLOOD INTELLIGENCE GRID</div>
+            </div>
+        </a>
+        <div class="d-flex align-items-center gap-2">
+            {% if user.is_authenticated %}
+                <!-- Role-Based Session Identity Widget -->
+                {% if user.is_superuser or user.is_staff %}
+                    <span class="badge bg-danger bg-opacity-20 text-danger border border-danger border-opacity-40 font-mono small d-none d-lg-inline-flex align-items-center gap-1 py-2 px-2">
+                        <i class="bi bi-shield-fill-check"></i> ROOT: {{ user.username }}
+                    </span>
+                    <a href="{% url 'dashboard_admin' %}" class="btn-vital-outline btn-sm py-2 px-3">
+                        <i class="bi bi-shield-check text-info"></i> Console UNESCO
+                    </a>
+                    <a href="/admin/" class="btn-vital-primary btn-sm py-2 px-3 d-none d-md-inline-flex">
+                        <i class="bi bi-terminal"></i> Django Core
+                    </a>
+                {% elif user.donneur %}
+                    <span class="badge bg-success bg-opacity-20 text-success border border-success border-opacity-40 font-mono small d-none d-lg-inline-flex align-items-center gap-1 py-2 px-2">
+                        <i class="bi bi-person-check-fill"></i> DONNEUR: {{ user.username }}
+                    </span>
+                    <a href="{% url 'dashboard_donneur' %}" class="btn-vital-outline btn-sm py-2 px-3">
+                        <i class="bi bi-person-heart text-danger"></i> Command Deck
+                    </a>
+                {% elif user.hopital %}
+                    <span class="badge bg-info bg-opacity-20 text-info border border-info border-opacity-40 font-mono small d-none d-lg-inline-flex align-items-center gap-1 py-2 px-2">
+                        <i class="bi bi-hospital-fill"></i> HÔPITAL: {{ user.username }}
+                    </span>
+                    <a href="{% url 'dashboard_hopital' %}" class="btn-vital-outline btn-sm py-2 px-3">
+                        <i class="bi bi-hospital text-info"></i> Terminal Médical
+                    </a>
+                {% endif %}
+
+                <!-- Unified Prominent Logout Action -->
+                <a href="{% url 'logout' %}" class="btn-vital-logout" title="Mettre fin à la session sécurisée">
+                    <i class="bi bi-box-arrow-right"></i>
+                    <span>Déconnexion</span>
+                </a>
+            {% else %}
+                <a href="{% url 'login' %}" class="btn-vital-outline btn-sm py-2 px-4">
+                    <i class="bi bi-fingerprint"></i> Connexion
+                </a>
+                <a href="{% url 'register_donneur' %}" class="btn-vital-primary btn-sm py-2 px-4">
+                    <i class="bi bi-heart-pulse"></i> Mobilisation
+                </a>
+            {% endif %}
+        </div>
+    </div>
+</nav>
+
+<main style="min-height: 82vh;">
+    {% block content %}
+    {% endblock %}
+</main>
+
+<footer class="text-center py-4 border-top mt-5" style="border-color: var(--clinical-border) !important; background: rgba(3, 6, 15, 0.8);">
+    <div class="container d-flex flex-column flex-md-row justify-content-between align-items-center gap-2">
+        <div class="text-start">
+            <span class="font-display fw-bold text-white small">VITALSTREAM // GLOBAL EMERGENCY PROTOCOL</span>
+            <p class="mb-0 text-muted small" style="font-size: 0.75rem;">In Partnership with UNESCO Global Health Infrastructure · Protocol v4.2</p>
+        </div>
+        <div class="d-flex align-items-center gap-3">
+            <span class="badge bg-dark border border-secondary text-secondary font-mono small">NODE: PAR-01</span>
+            <span class="badge bg-dark border border-secondary text-secondary font-mono small">GRID: SECURE</span>
+            <span class="text-muted small">© 2026 VitalStream. Tous droits réservés.</span>
+        </div>
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+{% if messages %}
+<div id="django-messages-container" style="display:none;">
+    {% for message in messages %}
+    <span class="django-message" data-message="{{ message }}" data-tags="{{ message.tags }}"></span>
+    {% endfor %}
+</div>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        var messageElements = document.querySelectorAll('.django-message');
+        messageElements.forEach(function(el, index) {
+            var text = el.getAttribute('data-message');
+            var tags = (el.getAttribute('data-tags') || '').toLowerCase();
+            
+            var borderColor = "#0072ce";
+            var glowColor = "rgba(0, 114, 206, 0.35)";
+            var iconHtml = '<i class="bi bi-info-circle-fill text-info fs-5"></i>';
+            var headerTitle = "NOTIFICATION SYSTÈME // PROTOCOLE";
+
+            if (tags.includes('success')) {
+                borderColor = "#00f5d4";
+                glowColor = "rgba(0, 245, 212, 0.35)";
+                iconHtml = '<i class="bi bi-check-circle-fill text-success fs-5"></i>';
+                headerTitle = "ACTION CONFIRMÉE // MISSION SUCCÈS";
+            } else if (tags.includes('error')) {
+                borderColor = "#ef233c";
+                glowColor = "rgba(239, 35, 60, 0.45)";
+                iconHtml = '<i class="bi bi-exclamation-octagon-fill text-danger fs-5"></i>';
+                headerTitle = "ALERTE SÉCURITÉ // ANOMALIE DÉTECTÉE";
+            } else if (tags.includes('warning')) {
+                borderColor = "#f59e0b";
+                glowColor = "rgba(245, 158, 11, 0.35)";
+                iconHtml = '<i class="bi bi-exclamation-triangle-fill text-warning fs-5"></i>';
+                headerTitle = "AVERTISSEMENT // ACTION REQUISE";
+            }
+
+            var toastContent = 
+                '<div style="display: flex; align-items: flex-start; gap: 12px; padding: 2px 4px;">' +
+                    '<div style="margin-top: 2px;">' + iconHtml + '</div>' +
+                    '<div style="flex: 1;">' +
+                        '<div style="font-family: \'JetBrains Mono\', monospace; font-size: 0.68rem; color: #8d99ae; letter-spacing: 0.08em; margin-bottom: 2px;">' + headerTitle + '</div>' +
+                        '<div style="font-family: \'Plus Jakarta Sans\', sans-serif; font-size: 0.88rem; font-weight: 600; color: #ffffff; line-height: 1.35;">' + text + '</div>' +
+                    '</div>' +
+                '</div>';
+
+            setTimeout(function() {
+                Toastify({
+                    text: toastContent,
+                    escapeMarkup: false,
+                    duration: 5000,
+                    close: true,
+                    gravity: "top",
+                    position: "right",
+                    style: {
+                        background: "rgba(8, 14, 33, 0.95)",
+                        border: "1px solid " + borderColor,
+                        borderRadius: "14px",
+                        boxShadow: "0 14px 40px rgba(0, 0, 0, 0.7), 0 0 20px " + glowColor,
+                        padding: "14px 18px",
+                        minWidth: "320px",
+                        maxWidth: "460px"
+                    }
+                }).showToast();
+            }, index * 200);
+        });
+    });
+</script>
+{% endif %}
+
+{% block extra_js %}{% endblock %}
+
+</body>
+</html>
